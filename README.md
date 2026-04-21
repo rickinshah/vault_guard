@@ -1,6 +1,6 @@
 # Vault Guard
 
-*Vault Guard* is an embedded intrusion detection system built using the STM32 Nucleo-F446RE. It combines multiple sensors and RFID-based authentication to monitor and protect a secure vault environment.
+**Vault Guard** is an embedded intrusion detection system built using the STM32 Nucleo-F446RE. It combines multiple sensors and RFID-based authentication to monitor and protect a secure vault environment.
 
 ## Overview
 
@@ -32,4 +32,6 @@ The system detects unauthorized access attempts using:
 | RFID (SCL)         | PB6      | I2C      | Output   |
 | RFID (SDA)         | PB7      | I2C      | I/O      |
 
-> VCC (all modules) - 5V
+> [!NOTE]
+> All module VCC pins are connected to the 5V supply.
+
