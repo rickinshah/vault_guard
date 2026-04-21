@@ -24,6 +24,7 @@
 #include "pn532_stm32f4.h"
 #include "rfid_helper.h"
 #include <string.h>
+#define NUM_RECORDS 3
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,7 +48,6 @@ I2C_HandleTypeDef hi2c1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-const size_t num_records = 3;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -76,12 +76,23 @@ int main(void)
 
   /* USER CODE BEGIN 1 */
     uint8_t buff[255];
-    bool check = 0;
+    //bool check = 0;
 	uint8_t uid[MIFARE_UID_MAX_LENGTH];
 	int32_t uid_len = 0;
-	rfid_record_t Data[2] = {(rfid_record_t) { {0xB9, 0x7A, 0xC4, 0x59}, 4, "Blue Tag"},
-(rfid_record_t){ {0xC9, 0xB5, 0xA6, 0x5A}, 4, "Card!" },
+	rfid_record_t records[NUM_RECORDS] = {
+        (rfid_record_t) { { 0xB9, 0x7A, 0xC4, 0x59 }, 4, "Blue Tag"},
+        (rfid_record_t) { { 0xC9, 0xB5, 0xA6, 0x5A }, 4, "Card!" }
     };
+    
+    size_t uid_str_size = 5 * MIFARE_UID_MAX_LENGTH + 1;
+    char auth_uid_str[uid_str_size];
+    
+    // Timer
+    rfid_record_t last_scanned;
+    uint32_t start_time = 0;
+    bool authorized = 0;
+    uint32_t duration = 5 * 60 * 1000; // 5 minutes
+    
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -122,39 +133,53 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+      if(authorized && HAL_GetTick() - start_time >= duration) {
+          authorized = false;
+      }
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    uid_len = PN532_ReadPassiveTarget(&pn532, uid, PN532_MIFARE_ISO14443A, 1000);
-    if (uid_len == PN532_STATUS_ERROR) {
-        print("Scan Card\r\n");
-
-    } 
-    else 
-    {
-        check = 0;
-                
-        for(int i = 0; i < 2; i++) 
-        {
-            if(uid_len == Data[i].uid_len && memcmp(uid, Data[i].uid, Data[i].uid_len) == 0) 
-            {
-                print("Valid ID\r\n");
-                break;
-            } else {
-                print("Invalid ID\r\n");
-            }
-       }
-      //if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_7)) {
-        //HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-      //}
-
-        
-        //if (!check) {
-          //  print("Not Valid ID\r\n");
-        //} else {
-          //  print("Valid ID\r\n");
-        //}
-
+      // Check LDR
+      if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_7)) {
+          print("Vault Opened - ");
+          if(authorized) {
+              print(auth_uid_str);
+              print("\r\n");
+          } else {
+            print("Intrusion\r\n");
+          }
+      }
+      // Check Vibration
+      if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6)) {
+          print("Vibration Detected - ");
+          if(authorized) {
+              print(auth_uid_str);
+              print("\r\n");
+          }
+          else {
+              print("Intrusion\r\n");
+          }
+      }
+      
+      uid_len = PN532_ReadPassiveTarget(&pn532, uid, PN532_MIFARE_ISO14443A, 1000);
+      if (uid_len == PN532_STATUS_ERROR) {
+          print("Scan Card\r\n");
+      } 
+      else {
+          size_t uid_index = check_uid(records, NUM_RECORDS, uid, uid_len);
+          if(uid_index == UID_NOT_FOUND) {
+              print("Invalid ID\r\n");
+          } else {
+              last_scanned = records[uid_index];
+              authorized = true;
+              start_time = HAL_GetTick();
+              uid_to_string(last_scanned.uid, last_scanned.uid_len, auth_uid_str, uid_str_size);
+              print(auth_uid_str);
+              print(" - ");
+              print(last_scanned.name);
+              print("\r\n");
+          }
     }
 
   }
