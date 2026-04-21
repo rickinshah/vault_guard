@@ -406,11 +406,6 @@
               <FilePath>..\Core\Src\pn532_stm32f4.c</FilePath>
             </File>
             <File>
-              <FileName>rfid_helper.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\Src\rfid_helper.c</FilePath>
-            </File>
-            <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/main.c</FilePath>
@@ -424,6 +419,11 @@
               <FileName>stm32f4xx_hal_msp.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/stm32f4xx_hal_msp.c</FilePath>
+            </File>
+            <File>
+              <FileName>rfid_helper.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\rfid_helper.c</FilePath>
             </File>
           </Files>
         </Group>
