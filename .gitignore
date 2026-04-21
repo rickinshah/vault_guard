@@ -1,0 +1,27 @@
+# Build artifacts
+*.o
+*.axf
+*.elf
+*.hex
+*.bin
+*.map
+*.lst
+*.d
+
+# Keil MDK files
+MDK-ARM/*.uvguix.*
+MDK-ARM/DebugConfig/
+MDK-ARM/RTE/_Target_*/
+MDK-ARM/Objects/
+MDK-ARM/List/
+
+# Optional (ignore if causing conflicts)
+MDK-ARM/*.uvoptx
+
+# Logs / temp
+*.log
+*.tmp
+
+# OS junk
+.DS_Store
+Thumbs.db
