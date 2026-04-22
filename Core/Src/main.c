@@ -88,7 +88,7 @@ int main(void)
     char auth_uid_str[uid_str_size];
     bool authorized = false;
     uint8_t scan_loop = 0;
-    bool new_line_needed = 0;
+    bool new_line_needed = true;
     uint32_t last_anim_time = 0;
     
     // Timer
@@ -123,7 +123,7 @@ int main(void)
 	PN532_Init(&pn532);
     
 	if (PN532_GetFirmwareVersion(&pn532, buff) == PN532_STATUS_OK) {
-        print("Handshake Done!\r\n");
+        print("Handshake Done!");
 	} else {
         print("Handshake Failed!\r\n");
 		return -1;
