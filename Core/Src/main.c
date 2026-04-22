@@ -86,12 +86,15 @@ int main(void)
     
     size_t uid_str_size = 5 * MIFARE_UID_MAX_LENGTH + 1;
     char auth_uid_str[uid_str_size];
+    bool authorized = false;
+    uint8_t scan_loop = 0;
+    bool new_line_needed = 0;
+    uint32_t last_anim_time = 0;
     
     // Timer
     rfid_record_t last_scanned;
     uint32_t start_time = 0;
-    bool authorized = 0;
-    uint32_t duration = 5 * 60 * 1000; // 5 minutes
+    uint32_t duration = 1 * 60 * 1000; // 1 minutes
     
   /* USER CODE END 1 */
 
@@ -140,48 +143,64 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-      // Check LDR
-      if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_7)) {
-          print("Vault Opened - ");
-          if(authorized) {
-              print(auth_uid_str);
-              print("\r\n");
-          } else {
-            print("Intrusion\r\n");
-          }
-      }
-      // Check Vibration
-      if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6)) {
-          print("Vibration Detected - ");
-          if(authorized) {
-              print(auth_uid_str);
-              print("\r\n");
-          }
-          else {
-              print("Intrusion\r\n");
-          }
-      }
-      
       uid_len = PN532_ReadPassiveTarget(&pn532, uid, PN532_MIFARE_ISO14443A, 1000);
       if (uid_len == PN532_STATUS_ERROR) {
-          print("Scan Card\r\n");
-      } 
+          if(HAL_GetTick() - last_anim_time > 500) {
+              last_anim_time = HAL_GetTick();
+              if(new_line_needed) {
+                  print("\r\n");
+                  new_line_needed = false;
+              }
+              print("\rScan Card   ");
+              print("\rScan Card");
+              for(size_t i = 0; i < scan_loop; i++) {
+                  print(".");
+              }
+              scan_loop = (scan_loop + 1) % 4;
+          }
+      }
       else {
           size_t uid_index = check_uid(records, NUM_RECORDS, uid, uid_len);
           if(uid_index == UID_NOT_FOUND) {
-              print("Invalid ID\r\n");
+              authorized = false;
+              uid_to_string(uid, uid_len, auth_uid_str, uid_str_size);
+              print("\r\n[Access Denied] ");
+              print(auth_uid_str);
           } else {
               last_scanned = records[uid_index];
               authorized = true;
               start_time = HAL_GetTick();
               uid_to_string(last_scanned.uid, last_scanned.uid_len, auth_uid_str, uid_str_size);
+              print("\r\n[Access Granted] ");
               print(auth_uid_str);
               print(" - ");
               print(last_scanned.name);
-              print("\r\n");
+              
           }
-    }
+          new_line_needed = true;
+      }
 
+      // Check LDR
+      if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_7)) {
+          print("\r\n[Vault Opened] ");
+          if(authorized) {
+              print(auth_uid_str);
+          } else {
+            print("Intrusion");
+          }
+          new_line_needed = true;
+      }
+      // Check Vibration
+      if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6)) {
+          print("\r\n[Vibration Detected] ");
+          if(authorized) {
+              print(auth_uid_str);
+          }
+          else {
+              print("Intrusion");
+          }
+          new_line_needed = true;
+      }
   }
   /* USER CODE END 3 */
 }
