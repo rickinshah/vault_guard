@@ -28,7 +28,7 @@ The system detects unauthorized access attempts using:
 | Component           | STM32 Pin | Interface | Direction |
 | - | - | - | - |
 | LDR                | PA6      | GPIO     | Input    |
-| Vibration Sensor   | PA7      | GPIO     | Input    |
+| Vibration Sensor   | PA7      | ADC     | Input    |
 | RFID (SCL)         | PB6      | I2C      | Output   |
 | RFID (SDA)         | PB7      | I2C      | I/O      |
 
